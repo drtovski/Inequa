@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">Inequa</string>
+    <string name="app_subtitle">Калькулятор неравенств</string>
+    <string name="expression_placeholder">Введите неравенство</string>
+    <string name="steps_button">Шаги</string>
+    <string name="steps_sheet_title">Пошаговое решение</string>
+    <string name="clear_button_short">C</string>
+    <string name="backspace_button_short">⌫</string>
+    <string name="equals_button">=</string>
+    <string name="result_placeholder">Ответ появится после =</string>
+    <string name="key_0">0</string>
+    <string name="key_1">1</string>
+    <string name="key_2">2</string>
+    <string name="key_3">3</string>
+    <string name="key_4">4</string>
+    <string name="key_5">5</string>
+    <string name="key_6">6</string>
+    <string name="key_7">7</string>
+    <string name="key_8">8</string>
+    <string name="key_9">9</string>
+    <string name="key_x">x</string>
+    <string name="key_x_squared">x²</string>
+    <string name="key_open_parenthesis">(</string>
+    <string name="key_close_parenthesis">)</string>
+    <string name="key_plus">+</string>
+    <string name="key_minus">-</string>
+    <string name="key_divide">/</string>
+    <string name="key_decimal_comma">,</string>
+    <string name="key_greater">&gt;</string>
+    <string name="key_less">&lt;</string>
+    <string name="key_greater_or_equal">≥</string>
+    <string name="key_less_or_equal">≤</string>
+</resources>
