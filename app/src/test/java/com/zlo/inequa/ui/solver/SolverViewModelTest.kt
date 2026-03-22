@@ -32,6 +32,30 @@ class SolverViewModelTest {
     }
 
     @Test
+    fun `keyboard inserts module and root symbols`() {
+        val viewModel = SolverViewModel()
+
+        viewModel.onInsertToken("|")
+        viewModel.onInsertToken("x")
+        viewModel.onInsertToken("-")
+        viewModel.onInsertToken("3")
+        viewModel.onInsertToken("|")
+        viewModel.onInsertToken("≥")
+        viewModel.onInsertToken("2")
+        assertEquals("|x - 3| ≥ 2", viewModel.uiState.value.expression)
+
+        viewModel.onClear()
+        viewModel.onInsertToken("√")
+        viewModel.onInsertToken("x")
+        viewModel.onInsertToken("+")
+        viewModel.onInsertToken("1")
+        viewModel.onInsertToken(")")
+        viewModel.onInsertToken(">")
+        viewModel.onInsertToken("2")
+        assertEquals("√(x + 1) > 2", viewModel.uiState.value.expression)
+    }
+
+    @Test
     fun `backspace removes logical tokens`() {
         val viewModel = SolverViewModel()
 

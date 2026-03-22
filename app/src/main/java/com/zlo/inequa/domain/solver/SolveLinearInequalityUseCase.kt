@@ -10,26 +10,41 @@ class SolveLinearInequalityUseCase(
     private val normalizer: InequalityInputNormalizer = InequalityInputNormalizer(),
     private val typeDetector: InequalityTypeDetector = InequalityTypeDetector(),
     private val parser: LinearInequalityParser = LinearInequalityParser(),
-    private val solver: LinearInequalitySolver = LinearInequalitySolver()
+    private val solver: LinearInequalitySolver = LinearInequalitySolver(),
+    private val absoluteInequalitySolver: AbsoluteInequalitySolver = AbsoluteInequalitySolver(),
+    private val rootInequalitySolver: RootInequalitySolver = RootInequalitySolver()
 ) {
     operator fun invoke(inputExpression: InputExpression): InequalitySolution {
         val normalizedInput = normalizer.normalizeForSolve(inputExpression.value)
         val inequalityType = typeDetector.detect(normalizedInput)
 
-        if (inequalityType != InequalityType.LINEAR) {
-            throw IllegalArgumentException(messageForUnsupportedType(inequalityType))
-        }
+        return when (inequalityType) {
+            InequalityType.LINEAR -> {
+                val parsed = parser.parse(InputExpression(normalizedInput))
+                solver.solve(parsed)
+            }
 
-        val parsed = parser.parse(InputExpression(normalizedInput))
-        return solver.solve(parsed)
+            InequalityType.ABSOLUTE -> {
+                absoluteInequalitySolver.solve(InputExpression(normalizedInput))
+            }
+
+            InequalityType.ROOT -> {
+                rootInequalitySolver.solve(InputExpression(normalizedInput))
+            }
+
+            else -> {
+                throw IllegalArgumentException(messageForUnsupportedType(inequalityType))
+            }
+        }
     }
 
     private fun messageForUnsupportedType(type: InequalityType): String {
         return when (type) {
             InequalityType.LINEAR -> ""
+            InequalityType.ROOT -> ""
             InequalityType.QUADRATIC -> "Квадратные неравенства пока не поддерживаются. Сейчас доступно решение линейных."
             InequalityType.RATIONAL -> "Дробно-рациональные неравенства пока не поддерживаются. Сейчас доступно решение линейных."
-            InequalityType.ABSOLUTE -> "Неравенства с модулем пока не поддерживаются. Сейчас доступно решение линейных."
+            InequalityType.ABSOLUTE -> ""
             InequalityType.COMPOUND -> "Составные неравенства пока не поддерживаются. Сейчас доступно решение линейных."
             InequalityType.SYSTEM -> "Системы неравенств пока не поддерживаются. Сейчас доступно решение линейных."
         }

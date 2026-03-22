@@ -3,6 +3,7 @@ package com.zlo.inequa.ui.solver.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -50,6 +51,8 @@ fun MathKeyboard(
     val keyLess = stringResource(R.string.key_less)
     val keyGreaterOrEqual = stringResource(R.string.key_greater_or_equal)
     val keyLessOrEqual = stringResource(R.string.key_less_or_equal)
+    val keyAbsolute = stringResource(R.string.key_absolute)
+    val keyRoot = stringResource(R.string.key_root)
 
     val rows = listOf(
         listOf(
@@ -83,11 +86,16 @@ fun MathKeyboard(
         listOf(
             KeyboardKey(keyGreaterOrEqual, KeyType.Operator),
             KeyboardKey(keyLessOrEqual, KeyType.Operator),
-            KeyboardKey(clearLabel, KeyType.Action),
-            KeyboardKey(backspaceLabel, KeyType.Action),
+            KeyboardKey(keyAbsolute, KeyType.Operator),
+            KeyboardKey(keyRoot, KeyType.Operator),
             KeyboardKey(equalsLabel, KeyType.Equals)
+        ),
+        listOf(
+            KeyboardKey(clearLabel, KeyType.Action),
+            KeyboardKey(backspaceLabel, KeyType.Action)
         )
     )
+    val maxColumns = rows.maxOf { it.size }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -124,6 +132,14 @@ fun MathKeyboard(
                                     else -> onInsert(key.label)
                                 }
                             }
+                        )
+                    }
+
+                    repeat(maxColumns - row.size) {
+                        Spacer(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
                         )
                     }
                 }

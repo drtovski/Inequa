@@ -45,6 +45,27 @@ class SolveLinearInequalityUseCaseTest {
     }
 
     @Test
+    fun `solves absolute inequality`() {
+        val result = useCase(InputExpression("|x - 3| >= 2"))
+
+        assertEquals("x ≤ 1 или x ≥ 5", result.shortAnswer)
+    }
+
+    @Test
+    fun `solves absolute inequality with abs function`() {
+        val result = useCase(InputExpression("abs(x - 3) >= 2"))
+
+        assertEquals("x ≤ 1 или x ≥ 5", result.shortAnswer)
+    }
+
+    @Test
+    fun `solves root inequality`() {
+        val result = useCase(InputExpression("√(x + 1) > 2"))
+
+        assertEquals("x > 3", result.shortAnswer)
+    }
+
+    @Test
     fun `returns clear message for unsupported quadratic inequality`() {
         val error = runCatching {
             useCase(InputExpression("x² - 5x + 6 <= 0"))

@@ -9,7 +9,9 @@ class ExpressionInputEditor {
 
         return when {
             normalizedToken.length == 1 && normalizedToken[0].isDigit() -> appendDigit(compact, normalizedToken)
-            normalizedToken == "x" || normalizedToken == "x²" -> compact + normalizedToken
+            normalizedToken == "x" || normalizedToken == "x²" -> appendVariable(compact, normalizedToken)
+            normalizedToken == "|" -> appendAbsoluteBar(compact)
+            normalizedToken == "sqrt(" -> appendRoot(compact)
             normalizedToken == "(" -> appendOpenParenthesis(compact)
             normalizedToken == ")" -> appendCloseParenthesis(compact)
             normalizedToken == "," || normalizedToken == "." -> appendDecimalSeparator(compact)
@@ -36,6 +38,8 @@ class ExpressionInputEditor {
 
     private fun appendDigit(rawExpression: String, digit: String): String {
         val last = lastToken(rawExpression)
+        if (isLastAbsoluteBarClosing(rawExpression, last)) return rawExpression
+
         return when (last) {
             "x", "x²" -> rawExpression
             "," -> rawExpression + digit
@@ -44,11 +48,48 @@ class ExpressionInputEditor {
         }
     }
 
+    private fun appendVariable(rawExpression: String, variable: String): String {
+        val last = lastToken(rawExpression)
+        if (isLastAbsoluteBarClosing(rawExpression, last)) return rawExpression
+        if (last == ")") return rawExpression
+
+        return rawExpression + variable
+    }
+
     private fun appendOpenParenthesis(rawExpression: String): String {
         val last = lastToken(rawExpression)
         return when (last) {
             "," -> rawExpression
             else -> rawExpression + "("
+        }
+    }
+
+    private fun appendAbsoluteBar(rawExpression: String): String {
+        val barsCount = rawExpression.count { it == '|' }
+        val isOpeningBar = barsCount % 2 == 0
+        val last = lastToken(rawExpression)
+
+        return if (isOpeningBar) {
+            if (last == null || last in openingOrOperatorTokens || last in binaryComparators) {
+                rawExpression + "|"
+            } else {
+                rawExpression
+            }
+        } else {
+            if (last == null || last in openingOrOperatorTokens || last in binaryComparators || last == "," || last == "|") {
+                rawExpression
+            } else {
+                rawExpression + "|"
+            }
+        }
+    }
+
+    private fun appendRoot(rawExpression: String): String {
+        val last = lastToken(rawExpression)
+        return if (last == null || last in openingOrOperatorTokens || last in binaryComparators) {
+            rawExpression + "sqrt("
+        } else {
+            rawExpression
         }
     }
 
@@ -63,6 +104,9 @@ class ExpressionInputEditor {
     }
 
     private fun appendDecimalSeparator(rawExpression: String): String {
+        val last = lastToken(rawExpression)
+        if (isLastAbsoluteBarClosing(rawExpression, last)) return rawExpression
+
         val currentNumber = currentNumberPart(rawExpression)
         if (currentNumber.contains(',') || currentNumber.contains('.')) {
             return rawExpression
@@ -72,7 +116,6 @@ class ExpressionInputEditor {
             return rawExpression + ","
         }
 
-        val last = lastToken(rawExpression)
         return if (last == null || last in openingOrOperatorTokens || last in binaryComparators) {
             rawExpression + "0,"
         } else {
@@ -84,6 +127,7 @@ class ExpressionInputEditor {
         if (rawExpression.isEmpty()) return rawExpression
 
         val last = lastToken(rawExpression) ?: return rawExpression
+        if (isLastAbsoluteBarOpening(rawExpression, last)) return rawExpression
         if (last in openingOrOperatorTokens || last in binaryComparators || last == ",") {
             return rawExpression
         }
@@ -95,6 +139,7 @@ class ExpressionInputEditor {
         if (rawExpression.isEmpty()) return rawExpression
         val last = lastToken(rawExpression) ?: return rawExpression
 
+        if (isLastAbsoluteBarOpening(rawExpression, last)) return rawExpression
         if (last in openingOrOperatorTokens || last in binaryComparators || last == ",") {
             return rawExpression
         }
@@ -126,6 +171,7 @@ class ExpressionInputEditor {
             "≥" -> ">="
             "≤" -> "<="
             "." -> ","
+            "√" -> "sqrt("
             else -> token.trim()
         }
     }
@@ -137,9 +183,19 @@ class ExpressionInputEditor {
             ?: rawExpression.last().toString()
     }
 
+    private fun isLastAbsoluteBarOpening(rawExpression: String, lastToken: String?): Boolean {
+        if (lastToken != "|") return false
+        return rawExpression.count { it == '|' } % 2 != 0
+    }
+
+    private fun isLastAbsoluteBarClosing(rawExpression: String, lastToken: String?): Boolean {
+        if (lastToken != "|") return false
+        return !isLastAbsoluteBarOpening(rawExpression, lastToken)
+    }
+
     private companion object {
         private val binaryComparators = setOf(">", "<", ">=", "<=")
-        private val openingOrOperatorTokens = setOf("(", "+", "-", "/", "*", "=", "|")
-        private val removableSuffixes = listOf(">=", "<=", "x²", "x^2")
+        private val openingOrOperatorTokens = setOf("(", "sqrt(", "+", "-", "/", "*", "=")
+        private val removableSuffixes = listOf("sqrt(", ">=", "<=", "x²", "x^2")
     }
 }

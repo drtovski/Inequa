@@ -75,6 +75,11 @@ class MathExpressionFormatter(
                             index += 1
                         }
 
+                        current == '√' -> {
+                            result += Token("√", TokenKind.Root)
+                            index += 1
+                        }
+
                         current == 'x' -> {
                             if (input.startsWith("x^2", index)) {
                                 result += Token("x²", TokenKind.Value)
@@ -119,21 +124,33 @@ class MathExpressionFormatter(
     private fun markUnaryMinus(tokens: List<Token>): List<DisplayToken> {
         val result = mutableListOf<DisplayToken>()
         var previous: DisplayToken? = null
+        var insideAbsolute = false
 
         tokens.forEach { token ->
+            val isOpeningAbsoluteBar = if (token.kind == TokenKind.AbsoluteBar) {
+                !insideAbsolute
+            } else {
+                false
+            }
+
             val unaryMinus = token.kind == TokenKind.Operator &&
                 token.text == "-" &&
                 (previous == null ||
                     previous.isBinaryOperator ||
                     previous.token.kind == TokenKind.OpenParenthesis ||
-                    previous.token.kind == TokenKind.AbsoluteBar)
+                    (previous.token.kind == TokenKind.AbsoluteBar && previous.isOpeningAbsoluteBar))
 
             val marked = DisplayToken(
                 token = token,
-                isUnaryMinus = unaryMinus
+                isUnaryMinus = unaryMinus,
+                isOpeningAbsoluteBar = isOpeningAbsoluteBar
             )
             result += marked
             previous = marked
+
+            if (token.kind == TokenKind.AbsoluteBar) {
+                insideAbsolute = !insideAbsolute
+            }
         }
 
         return result
@@ -143,7 +160,11 @@ class MathExpressionFormatter(
         if (previous == null) return false
         if (current.token.kind == TokenKind.CloseParenthesis) return false
         if (previous.token.kind == TokenKind.OpenParenthesis) return false
-        if (current.token.kind == TokenKind.AbsoluteBar || previous.token.kind == TokenKind.AbsoluteBar) return false
+        if (previous.token.kind == TokenKind.Root && current.token.kind == TokenKind.OpenParenthesis) return false
+        if (current.token.kind == TokenKind.AbsoluteBar) {
+            return current.isOpeningAbsoluteBar && (previous.isBinaryOperator || previous.token.kind == TokenKind.Word)
+        }
+        if (previous.token.kind == TokenKind.AbsoluteBar && previous.isOpeningAbsoluteBar) return false
         if (current.isBinaryOperator) return true
         if (previous.isBinaryOperator) return true
         if (current.token.kind == TokenKind.Word || previous.token.kind == TokenKind.Word) return true
@@ -165,7 +186,8 @@ class MathExpressionFormatter(
 
     private data class DisplayToken(
         val token: Token,
-        val isUnaryMinus: Boolean
+        val isUnaryMinus: Boolean,
+        val isOpeningAbsoluteBar: Boolean = false
     ) {
         val isBinaryOperator: Boolean
             get() = when (token.kind) {
@@ -182,6 +204,7 @@ class MathExpressionFormatter(
         OpenParenthesis,
         CloseParenthesis,
         AbsoluteBar,
+        Root,
         Word,
         Unknown
     }

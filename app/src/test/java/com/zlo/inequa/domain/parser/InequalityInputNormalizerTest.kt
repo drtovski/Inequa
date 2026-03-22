@@ -34,4 +34,11 @@ class InequalityInputNormalizerTest {
 
         assertEquals("0.5x - 1 <= 4", actual)
     }
+
+    @Test
+    fun `normalizeForSolve converts root symbol to sqrt`() {
+        val actual = normalizer.normalizeForSolve("√(x + 1) > 2")
+
+        assertEquals("sqrt(x + 1) > 2", actual)
+    }
 }

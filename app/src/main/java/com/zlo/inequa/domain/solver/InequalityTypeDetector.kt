@@ -15,6 +15,10 @@ class InequalityTypeDetector {
             return InequalityType.ABSOLUTE
         }
 
+        if (rootPattern.containsMatchIn(value)) {
+            return InequalityType.ROOT
+        }
+
         if (quadraticPattern.containsMatchIn(value)) {
             return InequalityType.QUADRATIC
         }
@@ -92,7 +96,8 @@ class InequalityTypeDetector {
     private companion object {
         private val comparatorPattern = Regex("(>=|<=|>|<)")
         private val quadraticPattern = Regex("x\\^2")
-        private val absolutePattern = Regex("\\|")
+        private val absolutePattern = Regex("\\||abs\\(")
+        private val rootPattern = Regex("sqrt\\(")
         private val systemPattern = Regex("(^|\\s)и(\\s|$)|&&|;")
         private val stopCharacters = setOf('+', '-', '*', '/', '>', '<', '=', ' ')
     }

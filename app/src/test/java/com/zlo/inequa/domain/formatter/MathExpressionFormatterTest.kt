@@ -27,4 +27,18 @@ class MathExpressionFormatterTest {
 
         assertEquals("(2x - 1) / 3 ≤ 5", actual)
     }
+
+    @Test
+    fun `formats absolute inequality`() {
+        val actual = formatter.format("|x-3|>=2")
+
+        assertEquals("|x - 3| ≥ 2", actual)
+    }
+
+    @Test
+    fun `formats root inequality`() {
+        val actual = formatter.format("sqrt(x+1)>2")
+
+        assertEquals("√(x + 1) > 2", actual)
+    }
 }

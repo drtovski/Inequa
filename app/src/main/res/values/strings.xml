@@ -30,4 +30,6 @@
     <string name="key_less">&lt;</string>
     <string name="key_greater_or_equal">≥</string>
     <string name="key_less_or_equal">≤</string>
+    <string name="key_absolute">|</string>
+    <string name="key_root">√</string>
 </resources>

@@ -4,6 +4,8 @@ class InequalityInputNormalizer {
 
     fun normalizeForSolve(rawInput: String): String {
         return normalizeBase(rawInput)
+            .replace("√", "sqrt")
+            .replace(Regex("(?i)sqrt\\s*\\("), "sqrt(")
             .replace("x²", "x^2")
             .replace(',', '.')
     }
@@ -11,6 +13,7 @@ class InequalityInputNormalizer {
     fun normalizeForDisplay(rawInput: String): String {
         return normalizeBase(rawInput)
             .replace("x^2", "x²")
+            .replace(Regex("(?i)sqrt\\s*\\("), "√(")
     }
 
     private fun normalizeBase(rawInput: String): String {
