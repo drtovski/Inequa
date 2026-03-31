@@ -14,8 +14,9 @@ class LinearInequalitySolver {
 
     fun solve(parsed: ParsedLinearInequality): InequalitySolution {
         val reduced = (parsed.left - parsed.right).normalized()
-        val normalizedValue = "${formatLinearExpression(reduced)} ${parsed.operator.symbol} 0"
+        val normalizedValue = "${formatLinearExpression(reduced, parsed.variableName)} ${displaySymbol(parsed.operator)} 0"
         val steps = mutableListOf<SolutionStep>()
+        val resultSet = LinearRangeSolver().solve(reduced, parsed.operator)
 
         steps += SolutionStep(
             title = "Стандартная форма",
@@ -35,6 +36,7 @@ class LinearInequalitySolver {
                 coefficient = a,
                 constant = b,
                 operator = parsed.operator,
+                variableName = parsed.variableName,
                 steps = steps
             )
         }
@@ -44,7 +46,9 @@ class LinearInequalitySolver {
             normalizedExpression = NormalizedExpression(normalizedValue),
             shortAnswer = answer.shortAnswer,
             intervalAnswer = answer.intervalAnswer,
-            steps = steps
+            steps = steps,
+            variableName = parsed.variableName,
+            graphIntervals = resultSet.asList()
         )
     }
 
@@ -86,15 +90,16 @@ class LinearInequalitySolver {
         coefficient: Double,
         constant: Double,
         operator: InequalityOperator,
+        variableName: String,
         steps: MutableList<SolutionStep>
     ): SolverAnswer {
         val root = -constant / coefficient
         val effectiveOperator = if (coefficient < 0) operator.reversed() else operator
-        val equation = "${formatLinearExpression(LinearExpression(coefficient, constant))} = 0"
+        val equation = "${formatLinearExpression(LinearExpression(coefficient, constant), variableName)} = 0"
 
         steps += SolutionStep(
             title = "Критическая точка",
-            description = "Решаем уравнение $equation. Критическая точка: x = ${formatNumber(root)}."
+            description = "Решаем уравнение $equation. Критическая точка: $variableName = ${formatNumber(root)}."
         )
 
         if (coefficient < 0) {
@@ -105,22 +110,22 @@ class LinearInequalitySolver {
         }
 
         val shortAnswer = when (effectiveOperator) {
-            InequalityOperator.GREATER -> "x > ${formatNumber(root)}"
-            InequalityOperator.LESS -> "x < ${formatNumber(root)}"
-            InequalityOperator.GREATER_OR_EQUAL -> "x ≥ ${formatNumber(root)}"
-            InequalityOperator.LESS_OR_EQUAL -> "x ≤ ${formatNumber(root)}"
+            InequalityOperator.GREATER -> "$variableName > ${formatNumber(root)}"
+            InequalityOperator.LESS -> "$variableName < ${formatNumber(root)}"
+            InequalityOperator.GREATER_OR_EQUAL -> "$variableName ≥ ${formatNumber(root)}"
+            InequalityOperator.LESS_OR_EQUAL -> "$variableName ≤ ${formatNumber(root)}"
         }
 
         val interval = when (effectiveOperator) {
-            InequalityOperator.GREATER -> "x ∈ (${formatNumber(root)}; +∞)"
-            InequalityOperator.LESS -> "x ∈ (-∞; ${formatNumber(root)})"
-            InequalityOperator.GREATER_OR_EQUAL -> "x ∈ [${formatNumber(root)}; +∞)"
-            InequalityOperator.LESS_OR_EQUAL -> "x ∈ (-∞; ${formatNumber(root)}]"
+            InequalityOperator.GREATER -> "$variableName ∈ (${formatNumber(root)}; +∞)"
+            InequalityOperator.LESS -> "$variableName ∈ (-∞; ${formatNumber(root)})"
+            InequalityOperator.GREATER_OR_EQUAL -> "$variableName ∈ [${formatNumber(root)}; +∞)"
+            InequalityOperator.LESS_OR_EQUAL -> "$variableName ∈ (-∞; ${formatNumber(root)}]"
         }
 
         steps += SolutionStep(
             title = "Выбор интервала",
-            description = intervalHint(effectiveOperator, root)
+            description = intervalHint(effectiveOperator, root, variableName)
         )
 
         steps += SolutionStep(
@@ -134,14 +139,14 @@ class LinearInequalitySolver {
         )
     }
 
-    private fun formatLinearExpression(expression: LinearExpression): String {
+    private fun formatLinearExpression(expression: LinearExpression, variableName: String): String {
         val parts = mutableListOf<String>()
 
         if (!isAlmostZero(expression.coefficient)) {
             val absCoefficient = abs(expression.coefficient)
             val value = when {
-                isAlmostEqual(absCoefficient, 1.0) -> "x"
-                else -> "${formatNumber(absCoefficient)}x"
+                isAlmostEqual(absCoefficient, 1.0) -> variableName
+                else -> "${formatNumber(absCoefficient)}$variableName"
             }
 
             parts += when {
@@ -177,13 +182,22 @@ class LinearInequalitySolver {
 
     private fun isAlmostEqual(left: Double, right: Double): Boolean = abs(left - right) < EPSILON
 
-    private fun intervalHint(operator: InequalityOperator, root: Double): String {
+    private fun intervalHint(operator: InequalityOperator, root: Double, variableName: String): String {
         val rootValue = formatNumber(root)
         return when (operator) {
-            InequalityOperator.GREATER -> "Берём значения правее точки $rootValue: x > $rootValue."
-            InequalityOperator.LESS -> "Берём значения левее точки $rootValue: x < $rootValue."
-            InequalityOperator.GREATER_OR_EQUAL -> "Берём точку $rootValue и значения правее: x ≥ $rootValue."
-            InequalityOperator.LESS_OR_EQUAL -> "Берём точку $rootValue и значения левее: x ≤ $rootValue."
+            InequalityOperator.GREATER -> "Берём значения правее точки $rootValue: $variableName > $rootValue."
+            InequalityOperator.LESS -> "Берём значения левее точки $rootValue: $variableName < $rootValue."
+            InequalityOperator.GREATER_OR_EQUAL -> "Берём точку $rootValue и значения правее: $variableName ≥ $rootValue."
+            InequalityOperator.LESS_OR_EQUAL -> "Берём точку $rootValue и значения левее: $variableName ≤ $rootValue."
+        }
+    }
+
+    private fun displaySymbol(operator: InequalityOperator): String {
+        return when (operator) {
+            InequalityOperator.GREATER -> ">"
+            InequalityOperator.LESS -> "<"
+            InequalityOperator.GREATER_OR_EQUAL -> "≥"
+            InequalityOperator.LESS_OR_EQUAL -> "≤"
         }
     }
 

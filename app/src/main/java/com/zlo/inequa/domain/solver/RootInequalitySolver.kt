@@ -19,12 +19,19 @@ class RootInequalitySolver(
 ) {
 
     fun solve(input: InputExpression): InequalitySolution {
+        return solve(input, "x")
+    }
+
+    fun solve(
+        input: InputExpression,
+        variableName: String
+    ): InequalitySolution {
         val normalized = normalizer.normalizeForSolve(input.value)
         val parsed = parse(normalized)
 
         val rootExpression = expressionParser.parse(parsed.rootInner).normalized()
         val boundary = parseConstant(parsed.boundaryRaw)
-        val normalizedExpression = "√(${formatLinearExpression(rootExpression)}) ${parsed.operator.symbol} ${formatNumber(boundary)}"
+        val normalizedExpression = "√(${formatLinearExpression(rootExpression, variableName)}) ${displaySymbol(parsed.operator)} ${formatNumber(boundary)}"
         val steps = mutableListOf<SolutionStep>()
 
         steps += SolutionStep(
@@ -35,7 +42,7 @@ class RootInequalitySolver(
         val domain = rangeSolver.solve(rootExpression, InequalityOperator.GREATER_OR_EQUAL, 0.0)
         steps += SolutionStep(
             title = "Область определения",
-            description = "Подкоренное выражение должно быть неотрицательным: ${formatLinearExpression(rootExpression)} ≥ 0."
+            description = "Подкоренное выражение должно быть неотрицательным: ${formatLinearExpression(rootExpression, variableName)} ≥ 0."
         )
 
         val resultSet = solveRoot(
@@ -43,11 +50,12 @@ class RootInequalitySolver(
             operator = parsed.operator,
             boundary = boundary,
             domain = domain,
+            variableName = variableName,
             steps = steps
         )
 
-        val shortAnswer = resultSet.toShortAnswer()
-        val intervalAnswer = resultSet.toIntervalAnswer()
+        val shortAnswer = resultSet.toShortAnswer(variableName)
+        val intervalAnswer = resultSet.toIntervalAnswer(variableName)
 
         steps += SolutionStep(
             title = "Ответ",
@@ -59,7 +67,9 @@ class RootInequalitySolver(
             normalizedExpression = NormalizedExpression(normalizedExpression),
             shortAnswer = shortAnswer,
             intervalAnswer = intervalAnswer,
-            steps = steps
+            steps = steps,
+            variableName = variableName,
+            graphIntervals = resultSet.asList()
         )
     }
 
@@ -68,6 +78,7 @@ class RootInequalitySolver(
         operator: InequalityOperator,
         boundary: Double,
         domain: IntervalSet,
+        variableName: String,
         steps: MutableList<SolutionStep>
     ): IntervalSet {
         if (boundary < 0) {
@@ -88,7 +99,7 @@ class RootInequalitySolver(
         val squared = boundary * boundary
         steps += SolutionStep(
             title = "Переход без корня",
-            description = "Так как правая часть неотрицательна, переходим к ${formatLinearExpression(expression)} ${operator.symbol} ${formatNumber(squared)} с учётом области определения."
+            description = "Так как правая часть неотрицательна, переходим к ${formatLinearExpression(expression, variableName)} ${displaySymbol(operator)} ${formatNumber(squared)} с учётом области определения."
         )
 
         val rawSet = when (operator) {
@@ -179,15 +190,15 @@ class RootInequalitySolver(
             .minByOrNull { it.index }
     }
 
-    private fun formatLinearExpression(expression: LinearExpression): String {
+    private fun formatLinearExpression(expression: LinearExpression, variableName: String): String {
         val parts = mutableListOf<String>()
 
         if (!isAlmostZero(expression.coefficient)) {
             val absCoefficient = abs(expression.coefficient)
             val value = if (isAlmostEqual(absCoefficient, 1.0)) {
-                "x"
+                variableName
             } else {
-                "${formatNumber(absCoefficient)}x"
+                "${formatNumber(absCoefficient)}$variableName"
             }
 
             parts += if (expression.coefficient < 0) "-$value" else value
@@ -236,6 +247,15 @@ class RootInequalitySolver(
         val token: String,
         val operator: InequalityOperator
     )
+
+    private fun displaySymbol(operator: InequalityOperator): String {
+        return when (operator) {
+            InequalityOperator.GREATER -> ">"
+            InequalityOperator.LESS -> "<"
+            InequalityOperator.GREATER_OR_EQUAL -> "≥"
+            InequalityOperator.LESS_OR_EQUAL -> "≤"
+        }
+    }
 
     private companion object {
         private const val EPSILON = 1e-9

@@ -19,12 +19,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.zlo.inequa.R
+import com.zlo.inequa.domain.solver.Interval
 
 @Composable
 fun ExpressionInputDisplay(
     expression: String,
     answer: String,
     errorMessage: String?,
+    graphIntervals: List<Interval>,
+    variableName: String,
     canShowSteps: Boolean,
     onShowSteps: () -> Unit
 ) {
@@ -70,6 +73,14 @@ fun ExpressionInputDisplay(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.End
             )
+
+            if (errorMessage == null && graphIntervals.isNotEmpty()) {
+                SolutionGraph(
+                    intervals = graphIntervals,
+                    variableName = variableName,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             TextButton(
                 onClick = onShowSteps,

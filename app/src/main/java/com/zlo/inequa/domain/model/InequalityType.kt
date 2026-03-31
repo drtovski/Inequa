@@ -4,6 +4,7 @@ enum class InequalityType {
     LINEAR,
     ROOT,
     QUADRATIC,
+    POWER,
     RATIONAL,
     ABSOLUTE,
     COMPOUND,

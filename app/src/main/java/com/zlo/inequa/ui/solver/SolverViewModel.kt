@@ -31,6 +31,8 @@ class SolverViewModel(
                 expression = formatter.format(rawExpression),
                 answer = "",
                 steps = emptyList(),
+                graphIntervals = emptyList(),
+                variableName = "x",
                 errorMessage = null,
                 isStepsSheetVisible = false
             )
@@ -46,6 +48,8 @@ class SolverViewModel(
                 expression = formatter.format(rawExpression),
                 answer = "",
                 steps = emptyList(),
+                graphIntervals = emptyList(),
+                variableName = "x",
                 errorMessage = null,
                 isStepsSheetVisible = false
             )
@@ -61,6 +65,8 @@ class SolverViewModel(
                 expression = "",
                 answer = "",
                 steps = emptyList(),
+                graphIntervals = emptyList(),
+                variableName = "x",
                 errorMessage = null,
                 isStepsSheetVisible = false
             )
@@ -73,6 +79,7 @@ class SolverViewModel(
                 current.copy(
                     answer = "",
                     steps = emptyList(),
+                    graphIntervals = emptyList(),
                     errorMessage = "Введите неравенство.",
                     isStepsSheetVisible = false
                 )
@@ -88,6 +95,8 @@ class SolverViewModel(
                     expression = formatter.format(rawExpression),
                     answer = solution.shortAnswer.ifBlank { solution.intervalAnswer },
                     steps = solution.steps,
+                    graphIntervals = solution.graphIntervals,
+                    variableName = solution.variableName,
                     errorMessage = null,
                     isStepsSheetVisible = false
                 )
@@ -98,6 +107,8 @@ class SolverViewModel(
                     expression = formatter.format(rawExpression),
                     answer = "",
                     steps = emptyList(),
+                    graphIntervals = emptyList(),
+                    variableName = "x",
                     errorMessage = throwable.message ?: "Не удалось решить неравенство.",
                     isStepsSheetVisible = false
                 )

@@ -55,7 +55,7 @@ class MathExpressionFormatter(
                             index += 1
                         }
 
-                        current == '+' || current == '-' || current == '/' || current == '=' || current == '*' -> {
+                        current == '+' || current == '-' || current == '/' || current == '=' || current == '*' || current == '^' -> {
                             result += Token(current.toString(), TokenKind.Operator)
                             index += 1
                         }
@@ -80,17 +80,13 @@ class MathExpressionFormatter(
                             index += 1
                         }
 
-                        current == 'x' -> {
-                            if (input.startsWith("x^2", index)) {
-                                result += Token("x²", TokenKind.Value)
-                                index += 3
-                            } else if (input.startsWith("x²", index)) {
-                                result += Token("x²", TokenKind.Value)
-                                index += 2
-                            } else {
-                                result += Token("x", TokenKind.Value)
+                        current == 'x' || current == 'y' || current == 'z' -> {
+                            val start = index
+                            index += 1
+                            while (index < input.length && input[index] in superscriptDigits) {
                                 index += 1
                             }
+                            result += Token(input.substring(start, index), TokenKind.Value)
                         }
 
                         current.isDigit() || current == '.' || current == ',' -> {
@@ -161,6 +157,7 @@ class MathExpressionFormatter(
         if (current.token.kind == TokenKind.CloseParenthesis) return false
         if (previous.token.kind == TokenKind.OpenParenthesis) return false
         if (previous.token.kind == TokenKind.Root && current.token.kind == TokenKind.OpenParenthesis) return false
+        if (previous.token.kind == TokenKind.Word && current.token.kind == TokenKind.OpenParenthesis) return false
         if (current.token.kind == TokenKind.AbsoluteBar) {
             return current.isOpeningAbsoluteBar && (previous.isBinaryOperator || previous.token.kind == TokenKind.Word)
         }
@@ -207,5 +204,9 @@ class MathExpressionFormatter(
         Root,
         Word,
         Unknown
+    }
+
+    private companion object {
+        private val superscriptDigits = setOf('⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹')
     }
 }

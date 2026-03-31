@@ -66,12 +66,32 @@ class SolveLinearInequalityUseCaseTest {
     }
 
     @Test
-    fun `returns clear message for unsupported quadratic inequality`() {
-        val error = runCatching {
-            useCase(InputExpression("x² - 5x + 6 <= 0"))
-        }.exceptionOrNull()
+    fun `solves quadratic inequality`() {
+        val result = useCase(InputExpression("x² - 5x + 6 <= 0"))
+
+        assertEquals("2 ≤ x ≤ 3", result.shortAnswer)
+    }
+
+    @Test
+    fun `solves rational inequality`() {
+        val result = useCase(InputExpression("(2x - 1) / (x + 3) > 0"))
+
+        assertEquals("x < -3 или x > 0,5", result.shortAnswer)
+    }
+
+    @Test
+    fun `solves inequality with y variable`() {
+        val result = useCase(InputExpression("y² - 1 >= 0"))
+
+        assertEquals("y ≤ -1 или y ≥ 1", result.shortAnswer)
+        assertEquals("y", result.variableName)
+    }
+
+    @Test
+    fun `returns clear message for unsupported higher power inequality`() {
+        val error = runCatching { useCase(InputExpression("z^4 - 1 > 0")) }.exceptionOrNull()
 
         assertTrue(error is IllegalArgumentException)
-        assertTrue(error?.message?.contains("Квадратные") == true)
+        assertTrue(error?.message?.contains("степени") == true)
     }
 }

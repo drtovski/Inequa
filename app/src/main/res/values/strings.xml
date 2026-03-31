@@ -19,7 +19,12 @@
     <string name="key_8">8</string>
     <string name="key_9">9</string>
     <string name="key_x">x</string>
+    <string name="key_y">y</string>
+    <string name="key_z">z</string>
     <string name="key_x_squared">x²</string>
+    <string name="key_power">^</string>
+    <string name="key_squared">²</string>
+    <string name="key_cubed">³</string>
     <string name="key_open_parenthesis">(</string>
     <string name="key_close_parenthesis">)</string>
     <string name="key_plus">+</string>

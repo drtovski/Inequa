@@ -41,4 +41,18 @@ class MathExpressionFormatterTest {
 
         assertEquals("√(x + 1) > 2", actual)
     }
+
+    @Test
+    fun `formats y variable with superscript powers`() {
+        val actual = formatter.format("y^2-4y+3<=0")
+
+        assertEquals("y² - 4y + 3 ≤ 0", actual)
+    }
+
+    @Test
+    fun `formats rational inequality with z variable`() {
+        val actual = formatter.format("(2z-1)/(z+3)>0")
+
+        assertEquals("(2z - 1) / (z + 3) > 0", actual)
+    }
 }

@@ -19,12 +19,19 @@ class AbsoluteInequalitySolver(
 ) {
 
     fun solve(input: InputExpression): InequalitySolution {
+        return solve(input, "x")
+    }
+
+    fun solve(
+        input: InputExpression,
+        variableName: String
+    ): InequalitySolution {
         val normalized = normalizer.normalizeForSolve(input.value)
         val parsed = parse(normalized)
 
         val innerExpression = expressionParser.parse(parsed.absoluteInner).normalized()
         val boundary = parseConstant(parsed.boundaryRaw)
-        val normalizedExpression = "|${formatLinearExpression(innerExpression)}| ${parsed.operator.symbol} ${formatNumber(boundary)}"
+        val normalizedExpression = "|${formatLinearExpression(innerExpression, variableName)}| ${displaySymbol(parsed.operator)} ${formatNumber(boundary)}"
         val steps = mutableListOf<SolutionStep>()
 
         steps += SolutionStep(
@@ -36,11 +43,12 @@ class AbsoluteInequalitySolver(
             expression = innerExpression,
             operator = parsed.operator,
             boundary = boundary,
+            variableName = variableName,
             steps = steps
         )
 
-        val shortAnswer = resultSet.toShortAnswer()
-        val intervalAnswer = resultSet.toIntervalAnswer()
+        val shortAnswer = resultSet.toShortAnswer(variableName)
+        val intervalAnswer = resultSet.toIntervalAnswer(variableName)
 
         steps += SolutionStep(
             title = "Ответ",
@@ -52,7 +60,9 @@ class AbsoluteInequalitySolver(
             normalizedExpression = NormalizedExpression(normalizedExpression),
             shortAnswer = shortAnswer,
             intervalAnswer = intervalAnswer,
-            steps = steps
+            steps = steps,
+            variableName = variableName,
+            graphIntervals = resultSet.asList()
         )
     }
 
@@ -60,6 +70,7 @@ class AbsoluteInequalitySolver(
         expression: LinearExpression,
         operator: InequalityOperator,
         boundary: Double,
+        variableName: String,
         steps: MutableList<SolutionStep>
     ): IntervalSet {
         if (boundary < 0) {
@@ -83,7 +94,7 @@ class AbsoluteInequalitySolver(
                 val rightSign = if (operator == InequalityOperator.LESS) "<" else "≤"
                 steps += SolutionStep(
                     title = "Раскрытие модуля",
-                    description = "-${formatNumber(boundary)} $rightSign ${formatLinearExpression(expression)} $rightSign ${formatNumber(boundary)}."
+                    description = "-${formatNumber(boundary)} $rightSign ${formatLinearExpression(expression, variableName)} $rightSign ${formatNumber(boundary)}."
                 )
                 val upper = rangeSolver.solve(expression, operator, boundary)
                 val lowerOperator = if (operator == InequalityOperator.LESS) {
@@ -100,7 +111,7 @@ class AbsoluteInequalitySolver(
                 val leftSign = if (operator == InequalityOperator.GREATER) ">" else "≥"
                 steps += SolutionStep(
                     title = "Раскрытие модуля",
-                    description = "${formatLinearExpression(expression)} $leftSign ${formatNumber(boundary)} или ${formatLinearExpression(expression)} ${if (leftSign == ">") "<" else "≤"} -${formatNumber(boundary)}."
+                    description = "${formatLinearExpression(expression, variableName)} $leftSign ${formatNumber(boundary)} или ${formatLinearExpression(expression, variableName)} ${if (leftSign == ">") "<" else "≤"} -${formatNumber(boundary)}."
                 )
                 val high = rangeSolver.solve(expression, operator, boundary)
                 val oppositeOperator = if (operator == InequalityOperator.GREATER) {
@@ -195,15 +206,15 @@ class AbsoluteInequalitySolver(
             .minByOrNull { it.index }
     }
 
-    private fun formatLinearExpression(expression: LinearExpression): String {
+    private fun formatLinearExpression(expression: LinearExpression, variableName: String): String {
         val parts = mutableListOf<String>()
 
         if (!isAlmostZero(expression.coefficient)) {
             val absCoefficient = abs(expression.coefficient)
             val value = if (isAlmostEqual(absCoefficient, 1.0)) {
-                "x"
+                variableName
             } else {
-                "${formatNumber(absCoefficient)}x"
+                "${formatNumber(absCoefficient)}$variableName"
             }
 
             parts += if (expression.coefficient < 0) "-$value" else value
@@ -252,6 +263,15 @@ class AbsoluteInequalitySolver(
         val token: String,
         val operator: InequalityOperator
     )
+
+    private fun displaySymbol(operator: InequalityOperator): String {
+        return when (operator) {
+            InequalityOperator.GREATER -> ">"
+            InequalityOperator.LESS -> "<"
+            InequalityOperator.GREATER_OR_EQUAL -> "≥"
+            InequalityOperator.LESS_OR_EQUAL -> "≤"
+        }
+    }
 
     private companion object {
         private const val EPSILON = 1e-9

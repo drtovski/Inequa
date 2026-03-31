@@ -9,14 +9,16 @@ class ExpressionInputEditor {
 
         return when {
             normalizedToken.length == 1 && normalizedToken[0].isDigit() -> appendDigit(compact, normalizedToken)
-            normalizedToken == "x" || normalizedToken == "x²" -> appendVariable(compact, normalizedToken)
+            normalizedToken in variableTokens -> appendVariable(compact, normalizedToken)
             normalizedToken == "|" -> appendAbsoluteBar(compact)
             normalizedToken == "sqrt(" -> appendRoot(compact)
+            normalizedToken == "^" -> appendPower(compact)
+            normalizedToken == "^2" || normalizedToken == "^3" -> appendExponentShortcut(compact, normalizedToken)
             normalizedToken == "(" -> appendOpenParenthesis(compact)
             normalizedToken == ")" -> appendCloseParenthesis(compact)
             normalizedToken == "," || normalizedToken == "." -> appendDecimalSeparator(compact)
             normalizedToken in binaryComparators -> appendComparator(compact, normalizedToken)
-            normalizedToken == "+" || normalizedToken == "/" -> appendBinaryOperator(compact, normalizedToken)
+            normalizedToken == "+" || normalizedToken == "/" || normalizedToken == "*" -> appendBinaryOperator(compact, normalizedToken)
             normalizedToken == "-" -> appendMinus(compact)
             else -> compact + normalizedToken
         }
@@ -41,7 +43,8 @@ class ExpressionInputEditor {
         if (isLastAbsoluteBarClosing(rawExpression, last)) return rawExpression
 
         return when (last) {
-            "x", "x²" -> rawExpression
+            in variableTokens -> rawExpression
+            "^" -> rawExpression + digit
             "," -> rawExpression + digit
             ")" -> rawExpression
             else -> rawExpression + digit
@@ -51,7 +54,7 @@ class ExpressionInputEditor {
     private fun appendVariable(rawExpression: String, variable: String): String {
         val last = lastToken(rawExpression)
         if (isLastAbsoluteBarClosing(rawExpression, last)) return rawExpression
-        if (last == ")") return rawExpression
+        if (last == ")" || last in variableTokens || last == "^2" || last == "^3") return rawExpression
 
         return rawExpression + variable
     }
@@ -90,6 +93,28 @@ class ExpressionInputEditor {
             rawExpression + "sqrt("
         } else {
             rawExpression
+        }
+    }
+
+    private fun appendPower(rawExpression: String): String {
+        if (rawExpression.isEmpty()) return rawExpression
+
+        val last = lastToken(rawExpression) ?: return rawExpression
+        return if (last in variableTokens || last == ")" || isLastAbsoluteBarClosing(rawExpression, last)) {
+            rawExpression + "^"
+        } else {
+            rawExpression
+        }
+    }
+
+    private fun appendExponentShortcut(rawExpression: String, exponentToken: String): String {
+        if (rawExpression.isEmpty()) return rawExpression
+
+        val last = lastToken(rawExpression) ?: return rawExpression
+        return when {
+            last == "^" -> rawExpression + exponentToken.removePrefix("^")
+            last in variableTokens || last == ")" || isLastAbsoluteBarClosing(rawExpression, last) -> rawExpression + exponentToken
+            else -> rawExpression
         }
     }
 
@@ -151,7 +176,7 @@ class ExpressionInputEditor {
         if (rawExpression.isEmpty()) return "-"
 
         val last = lastToken(rawExpression) ?: return rawExpression
-        if (last == "," || last == "-") return rawExpression
+        if (last == "," || last == "-" || last == "^") return rawExpression
 
         return rawExpression + "-"
     }
@@ -172,6 +197,11 @@ class ExpressionInputEditor {
             "≤" -> "<="
             "." -> ","
             "√" -> "sqrt("
+            "²" -> "^2"
+            "³" -> "^3"
+            "X" -> "x"
+            "Y" -> "y"
+            "Z" -> "z"
             else -> token.trim()
         }
     }
@@ -195,7 +225,8 @@ class ExpressionInputEditor {
 
     private companion object {
         private val binaryComparators = setOf(">", "<", ">=", "<=")
-        private val openingOrOperatorTokens = setOf("(", "sqrt(", "+", "-", "/", "*", "=")
-        private val removableSuffixes = listOf("sqrt(", ">=", "<=", "x²", "x^2")
+        private val variableTokens = setOf("x", "y", "z")
+        private val openingOrOperatorTokens = setOf("(", "sqrt(", "+", "-", "/", "*", "=", "^")
+        private val removableSuffixes = listOf("sqrt(", ">=", "<=", "^2", "^3")
     }
 }

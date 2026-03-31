@@ -19,6 +19,14 @@ class InequalityTypeDetector {
             return InequalityType.ROOT
         }
 
+        if (higherPowerPattern.containsMatchIn(value)) {
+            return InequalityType.POWER
+        }
+
+        if (hasVariableDenominator(value)) {
+            return InequalityType.RATIONAL
+        }
+
         if (quadraticPattern.containsMatchIn(value)) {
             return InequalityType.QUADRATIC
         }
@@ -26,10 +34,6 @@ class InequalityTypeDetector {
         val comparatorCount = comparatorPattern.findAll(value).count()
         if (comparatorCount > 1) {
             return InequalityType.COMPOUND
-        }
-
-        if (hasVariableDenominator(value)) {
-            return InequalityType.RATIONAL
         }
 
         return InequalityType.LINEAR
@@ -96,6 +100,7 @@ class InequalityTypeDetector {
     private companion object {
         private val comparatorPattern = Regex("(>=|<=|>|<)")
         private val quadraticPattern = Regex("x\\^2")
+        private val higherPowerPattern = Regex("x\\^(?:[3-9]|\\d{2,})")
         private val absolutePattern = Regex("\\||abs\\(")
         private val rootPattern = Regex("sqrt\\(")
         private val systemPattern = Regex("(^|\\s)и(\\s|$)|&&|;")

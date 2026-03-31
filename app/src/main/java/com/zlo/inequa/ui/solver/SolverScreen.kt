@@ -48,6 +48,8 @@ fun SolverScreen(
                 expression = uiState.expression,
                 answer = uiState.answer,
                 errorMessage = uiState.errorMessage,
+                graphIntervals = uiState.graphIntervals,
+                variableName = uiState.variableName,
                 canShowSteps = uiState.canShowSteps,
                 onShowSteps = viewModel::onOpenSteps
             )

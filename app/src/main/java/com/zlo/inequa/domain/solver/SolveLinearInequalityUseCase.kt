@@ -5,31 +5,59 @@ import com.zlo.inequa.domain.model.InequalityType
 import com.zlo.inequa.domain.model.InputExpression
 import com.zlo.inequa.domain.parser.InequalityInputNormalizer
 import com.zlo.inequa.domain.parser.LinearInequalityParser
+import com.zlo.inequa.domain.parser.SingleVariableContextResolver
 
 class SolveLinearInequalityUseCase(
     private val normalizer: InequalityInputNormalizer = InequalityInputNormalizer(),
+    private val variableContextResolver: SingleVariableContextResolver = SingleVariableContextResolver(),
     private val typeDetector: InequalityTypeDetector = InequalityTypeDetector(),
     private val parser: LinearInequalityParser = LinearInequalityParser(),
     private val solver: LinearInequalitySolver = LinearInequalitySolver(),
+    private val quadraticInequalitySolver: QuadraticInequalitySolver = QuadraticInequalitySolver(),
+    private val rationalInequalitySolver: RationalInequalitySolver = RationalInequalitySolver(),
     private val absoluteInequalitySolver: AbsoluteInequalitySolver = AbsoluteInequalitySolver(),
     private val rootInequalitySolver: RootInequalitySolver = RootInequalitySolver()
 ) {
     operator fun invoke(inputExpression: InputExpression): InequalitySolution {
-        val normalizedInput = normalizer.normalizeForSolve(inputExpression.value)
+        val variableContext = variableContextResolver.resolve(inputExpression.value)
+        val normalizedInput = normalizer.normalizeForSolve(variableContext.canonicalExpression)
         val inequalityType = typeDetector.detect(normalizedInput)
 
         return when (inequalityType) {
             InequalityType.LINEAR -> {
-                val parsed = parser.parse(InputExpression(normalizedInput))
+                val parsed = parser.parse(
+                    input = InputExpression(normalizedInput),
+                    variableName = variableContext.variableName
+                )
                 solver.solve(parsed)
             }
 
+            InequalityType.QUADRATIC -> {
+                quadraticInequalitySolver.solve(
+                    input = InputExpression(normalizedInput),
+                    variableName = variableContext.variableName
+                )
+            }
+
+            InequalityType.RATIONAL -> {
+                rationalInequalitySolver.solve(
+                    input = InputExpression(normalizedInput),
+                    variableName = variableContext.variableName
+                )
+            }
+
             InequalityType.ABSOLUTE -> {
-                absoluteInequalitySolver.solve(InputExpression(normalizedInput))
+                absoluteInequalitySolver.solve(
+                    input = InputExpression(normalizedInput),
+                    variableName = variableContext.variableName
+                )
             }
 
             InequalityType.ROOT -> {
-                rootInequalitySolver.solve(InputExpression(normalizedInput))
+                rootInequalitySolver.solve(
+                    input = InputExpression(normalizedInput),
+                    variableName = variableContext.variableName
+                )
             }
 
             else -> {
@@ -42,8 +70,9 @@ class SolveLinearInequalityUseCase(
         return when (type) {
             InequalityType.LINEAR -> ""
             InequalityType.ROOT -> ""
-            InequalityType.QUADRATIC -> "Квадратные неравенства пока не поддерживаются. Сейчас доступно решение линейных."
-            InequalityType.RATIONAL -> "Дробно-рациональные неравенства пока не поддерживаются. Сейчас доступно решение линейных."
+            InequalityType.QUADRATIC -> ""
+            InequalityType.POWER -> "Пока поддерживаются степени не выше второй."
+            InequalityType.RATIONAL -> ""
             InequalityType.ABSOLUTE -> ""
             InequalityType.COMPOUND -> "Составные неравенства пока не поддерживаются. Сейчас доступно решение линейных."
             InequalityType.SYSTEM -> "Системы неравенств пока не поддерживаются. Сейчас доступно решение линейных."

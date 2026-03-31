@@ -18,6 +18,7 @@ class SolverViewModelTest {
         assertEquals("", state.answer)
         assertNull(state.errorMessage)
         assertTrue(state.steps.isEmpty())
+        assertTrue(state.graphIntervals.isEmpty())
     }
 
     @Test
@@ -56,6 +57,23 @@ class SolverViewModelTest {
     }
 
     @Test
+    fun `keyboard inserts y z and power shortcuts`() {
+        val viewModel = SolverViewModel()
+
+        viewModel.onInsertToken("y")
+        viewModel.onInsertToken("²")
+        viewModel.onInsertToken("-")
+        viewModel.onInsertToken("1")
+        assertEquals("y² - 1", viewModel.uiState.value.expression)
+
+        viewModel.onClear()
+        viewModel.onInsertToken("z")
+        viewModel.onInsertToken("^")
+        viewModel.onInsertToken("3")
+        assertEquals("z³", viewModel.uiState.value.expression)
+    }
+
+    @Test
     fun `backspace removes logical tokens`() {
         val viewModel = SolverViewModel()
 
@@ -68,6 +86,12 @@ class SolverViewModelTest {
 
         viewModel.onBackspace()
         assertEquals("x", viewModel.uiState.value.expression)
+
+        viewModel.onClear()
+        viewModel.onInsertToken("y")
+        viewModel.onInsertToken("²")
+        viewModel.onBackspace()
+        assertEquals("y", viewModel.uiState.value.expression)
     }
 
     @Test
@@ -89,6 +113,7 @@ class SolverViewModelTest {
         assertEquals("", state.expression)
         assertEquals("", state.answer)
         assertTrue(state.steps.isEmpty())
+        assertTrue(state.graphIntervals.isEmpty())
         assertNull(state.errorMessage)
     }
 
@@ -106,6 +131,7 @@ class SolverViewModelTest {
         val validState = validViewModel.uiState.value
         assertEquals("x > 2", validState.answer)
         assertTrue(validState.steps.isNotEmpty())
+        assertTrue(validState.graphIntervals.isNotEmpty())
         assertNull(validState.errorMessage)
 
         val invalidViewModel = SolverViewModel()
@@ -117,5 +143,6 @@ class SolverViewModelTest {
         invalidViewModel.onSolve()
         assertNotNull(invalidViewModel.uiState.value.errorMessage)
         assertFalse(invalidViewModel.uiState.value.canShowSteps)
+        assertTrue(invalidViewModel.uiState.value.graphIntervals.isEmpty())
     }
 }

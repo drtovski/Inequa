@@ -15,6 +15,8 @@ class IntervalSet private constructor(
     private val intervals: List<Interval>
 ) {
 
+    fun asList(): List<Interval> = intervals.toList()
+
     fun isEmpty(): Boolean = intervals.isEmpty()
 
     fun isAllReal(): Boolean {
@@ -76,51 +78,51 @@ class IntervalSet private constructor(
         return IntervalSet(result)
     }
 
-    fun toShortAnswer(): String {
+    fun toShortAnswer(variableName: String = "x"): String {
         if (isEmpty()) return "Решений нет"
-        if (isAllReal()) return "Любое x"
+        if (isAllReal()) return "Любое $variableName"
 
         return intervals.joinToString(" или ") { interval ->
-            intervalToShort(interval)
+            intervalToShort(interval, variableName)
         }
     }
 
-    fun toIntervalAnswer(): String {
+    fun toIntervalAnswer(variableName: String = "x"): String {
         if (isEmpty()) return "∅"
-        if (isAllReal()) return "x ∈ R"
+        if (isAllReal()) return "$variableName ∈ R"
 
         val value = intervals.joinToString(" ∪ ") { interval ->
             intervalToNotation(interval)
         }
-        return "x ∈ $value"
+        return "$variableName ∈ $value"
     }
 
-    private fun intervalToShort(interval: Interval): String {
+    private fun intervalToShort(interval: Interval, variableName: String): String {
         val left = interval.start
         val right = interval.end
 
         return when {
             left == null && right != null -> {
                 val sign = if (interval.includeEnd) "≤" else "<"
-                "x $sign ${formatNumber(right)}"
+                "$variableName $sign ${formatNumber(right)}"
             }
 
             left != null && right == null -> {
                 val sign = if (interval.includeStart) "≥" else ">"
-                "x $sign ${formatNumber(left)}"
+                "$variableName $sign ${formatNumber(left)}"
             }
 
             left != null && right != null && almostEqual(left, right) && interval.includeStart && interval.includeEnd -> {
-                "x = ${formatNumber(left)}"
+                "$variableName = ${formatNumber(left)}"
             }
 
             left != null && right != null -> {
                 val leftSign = if (interval.includeStart) "≤" else "<"
                 val rightSign = if (interval.includeEnd) "≤" else "<"
-                "${formatNumber(left)} $leftSign x $rightSign ${formatNumber(right)}"
+                "${formatNumber(left)} $leftSign $variableName $rightSign ${formatNumber(right)}"
             }
 
-            else -> "Любое x"
+            else -> "Любое $variableName"
         }
     }
 

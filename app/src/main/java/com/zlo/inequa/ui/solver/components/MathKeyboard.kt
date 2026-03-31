@@ -40,12 +40,16 @@ fun MathKeyboard(
     val key8 = stringResource(R.string.key_8)
     val key9 = stringResource(R.string.key_9)
     val keyX = stringResource(R.string.key_x)
-    val keyXSquared = stringResource(R.string.key_x_squared)
+    val keyY = stringResource(R.string.key_y)
+    val keyZ = stringResource(R.string.key_z)
     val keyOpenParenthesis = stringResource(R.string.key_open_parenthesis)
     val keyCloseParenthesis = stringResource(R.string.key_close_parenthesis)
     val keyPlus = stringResource(R.string.key_plus)
     val keyMinus = stringResource(R.string.key_minus)
     val keyDivide = stringResource(R.string.key_divide)
+    val keyPower = stringResource(R.string.key_power)
+    val keySquared = stringResource(R.string.key_squared)
+    val keyCubed = stringResource(R.string.key_cubed)
     val keyDecimalComma = stringResource(R.string.key_decimal_comma)
     val keyGreater = stringResource(R.string.key_greater)
     val keyLess = stringResource(R.string.key_less)
@@ -56,46 +60,50 @@ fun MathKeyboard(
 
     val rows = listOf(
         listOf(
+            KeyboardKey(clearLabel, KeyType.Action),
+            KeyboardKey(backspaceLabel, KeyType.Action),
+            KeyboardKey(keyOpenParenthesis, KeyType.Operator),
+            KeyboardKey(keyCloseParenthesis, KeyType.Operator),
+            KeyboardKey(keyAbsolute, KeyType.Operator),
+            KeyboardKey(keyRoot, KeyType.Operator)
+        ),
+        listOf(
             KeyboardKey(key7, KeyType.Number),
             KeyboardKey(key8, KeyType.Number),
             KeyboardKey(key9, KeyType.Number),
-            KeyboardKey(keyOpenParenthesis, KeyType.Operator),
-            KeyboardKey(keyCloseParenthesis, KeyType.Operator)
+            KeyboardKey(keyDivide, KeyType.Operator),
+            KeyboardKey(keyPower, KeyType.Operator),
+            KeyboardKey(keyX, KeyType.Operator)
         ),
         listOf(
             KeyboardKey(key4, KeyType.Number),
             KeyboardKey(key5, KeyType.Number),
             KeyboardKey(key6, KeyType.Number),
             KeyboardKey(keyPlus, KeyType.Operator),
-            KeyboardKey(keyMinus, KeyType.Operator)
+            KeyboardKey(keyMinus, KeyType.Operator),
+            KeyboardKey(keyY, KeyType.Operator)
         ),
         listOf(
             KeyboardKey(key1, KeyType.Number),
             KeyboardKey(key2, KeyType.Number),
             KeyboardKey(key3, KeyType.Number),
-            KeyboardKey(keyX, KeyType.Operator),
-            KeyboardKey(keyXSquared, KeyType.Operator)
+            KeyboardKey(keyGreater, KeyType.Operator),
+            KeyboardKey(keyLess, KeyType.Operator),
+            KeyboardKey(keyZ, KeyType.Operator)
         ),
         listOf(
             KeyboardKey(key0, KeyType.Number),
             KeyboardKey(keyDecimalComma, KeyType.Operator),
-            KeyboardKey(keyDivide, KeyType.Operator),
-            KeyboardKey(keyGreater, KeyType.Operator),
-            KeyboardKey(keyLess, KeyType.Operator)
-        ),
-        listOf(
+            KeyboardKey(keySquared, KeyType.Operator),
+            KeyboardKey(keyCubed, KeyType.Operator),
             KeyboardKey(keyGreaterOrEqual, KeyType.Operator),
-            KeyboardKey(keyLessOrEqual, KeyType.Operator),
-            KeyboardKey(keyAbsolute, KeyType.Operator),
-            KeyboardKey(keyRoot, KeyType.Operator),
-            KeyboardKey(equalsLabel, KeyType.Equals)
+            KeyboardKey(keyLessOrEqual, KeyType.Operator)
         ),
         listOf(
-            KeyboardKey(clearLabel, KeyType.Action),
-            KeyboardKey(backspaceLabel, KeyType.Action)
+            KeyboardKey(equalsLabel, KeyType.Equals, span = 6)
         )
     )
-    val maxColumns = rows.maxOf { it.size }
+    val maxColumns = 6
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -122,7 +130,7 @@ fun MathKeyboard(
                         KeyboardButton(
                             key = key,
                             modifier = Modifier
-                                .weight(1f)
+                                .weight(key.span.toFloat())
                                 .fillMaxHeight(),
                             onClick = {
                                 when (key.label) {
@@ -135,7 +143,7 @@ fun MathKeyboard(
                         )
                     }
 
-                    repeat(maxColumns - row.size) {
+                    repeat(maxColumns - row.sumOf { it.span }) {
                         Spacer(
                             modifier = Modifier
                                 .weight(1f)
@@ -192,7 +200,8 @@ private fun KeyboardButton(
 
 private data class KeyboardKey(
     val label: String,
-    val type: KeyType
+    val type: KeyType,
+    val span: Int = 1
 )
 
 private enum class KeyType {

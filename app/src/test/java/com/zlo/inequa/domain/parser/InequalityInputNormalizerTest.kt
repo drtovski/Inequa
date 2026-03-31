@@ -41,4 +41,18 @@ class InequalityInputNormalizerTest {
 
         assertEquals("sqrt(x + 1) > 2", actual)
     }
+
+    @Test
+    fun `normalizeForSolve converts y superscript form to power`() {
+        val actual = normalizer.normalizeForSolve("Y² - 4Y + 3 ≤ 0")
+
+        assertEquals("y^2 - 4y + 3 <= 0", actual)
+    }
+
+    @Test
+    fun `normalizeForDisplay converts powers to superscripts`() {
+        val actual = normalizer.normalizeForDisplay("z^3 - 1 >= 0")
+
+        assertEquals("z³ - 1 >= 0", actual)
+    }
 }
